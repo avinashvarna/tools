@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Combination Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #0f1419;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid #2a2a3e;
+        }
+        
+        h1 {
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-weight: 600;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #2a2a3e;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .slider-container {
+            margin-bottom: 30px;
+        }
+        
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #2a2a3e;
+            outline: none;
+            margin-top: 10px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .count {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #2a2a3e;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #2a2a3e;
+            color: #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #1a1a2e;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        @media (min-width: 768px) {
+            table {
+                display: table;
+            }
+            
+            th, td {
+                display: table-cell;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔤 Word Combination Generator</h1>
+        
+        <div class="input-group">
+            <label for="prefix">Prefix:</label>
+            <input type="text" id="prefix" placeholder="e.g., test">
+        </div>
+        
+        <div class="input-group">
+            <label for="characters">Characters (no spaces):</label>
+            <input type="text" id="characters" placeholder="e.g., abc">
+        </div>
+        
+        <div class="slider-container">
+            <label for="length">Suffix Length: <span class="slider-value" id="lengthValue">2</span></label>
+            <input type="range" id="length" min="2" max="5" value="2">
+        </div>
+        
+        <button onclick="generate()">Generate Combinations</button>
+        
+        <div class="results" id="results" style="display: none;">
+            <div class="results-header">
+                <h2>Results</h2>
+                <span class="count" id="count"></span>
+            </div>
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr id="tableHeader"></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="no-results" id="noResults" style="display: none;">
+            Enter a prefix and characters to generate combinations
+        </div>
+    </div>
+    
+    <script>
+        const lengthSlider = document.getElementById('length');
+        const lengthValue = document.getElementById('lengthValue');
+        
+        lengthSlider.addEventListener('input', function() {
+            lengthValue.textContent = this.value;
+        });
+        
+        function generateCombinations(chars, length) {
+            const results = [];
+            
+            function backtrack(current) {
+                if (current.length === length) {
+                    results.push(current);
+                    return;
+                }
+                
+                for (let char of chars) {
+                    backtrack(current + char);
+                }
+            }
+            
+            backtrack('');
+            return results;
+        }
+        
+        function generate() {
+            const prefix = document.getElementById('prefix').value;
+            const characters = document.getElementById('characters').value.replace(/\s/g, '').toLowerCase();
+            const length = parseInt(document.getElementById('length').value);
+            
+            if (!characters) {
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('noResults').style.display = 'block';
+                return;
+            }
+            
+            const combinations = generateCombinations(characters, length);
+            const words = combinations.map(combo => prefix + combo);
+            
+            displayResults(words);
+        }
+        
+        function displayResults(words) {
+            const resultsDiv = document.getElementById('results');
+            const noResultsDiv = document.getElementById('noResults');
+            const tableHeader = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+            const countSpan = document.getElementById('count');
+            
+            if (words.length === 0) {
+                resultsDiv.style.display = 'none';
+                noResultsDiv.style.display = 'block';
+                return;
+            }
+            
+            noResultsDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            countSpan.textContent = `${words.length} combinations`;
+            
+            const numColumns = window.innerWidth < 768 ? 2 : (window.innerWidth < 1024 ? 3 : 4);
+            
+            tableHeader.innerHTML = '';
+            for (let i = 0; i < numColumns; i++) {
+                const th = document.createElement('th');
+                th.textContent = 'Word';
+                tableHeader.appendChild(th);
+            }
+            
+            tableBody.innerHTML = '';
+            for (let i = 0; i < words.length; i += numColumns) {
+                const tr = document.createElement('tr');
+                for (let j = 0; j < numColumns; j++) {
+                    const td = document.createElement('td');
+                    td.textContent = words[i + j] || '';
+                    tr.appendChild(td);
+                }
+                tableBody.appendChild(tr);
+            }
+        }
+        
+        window.addEventListener('resize', function() {
+            const prefix = document.getElementById('prefix').value;
+            const characters = document.getElementById('characters').value.replace(/\s/g, '');
+            const length = parseInt(document.getElementById('length').value);
+            
+            if (characters && document.getElementById('results').style.display !== 'none') {
+                const combinations = generateCombinations(characters, length);
+                const words = combinations.map(combo => prefix + combo);
+                displayResults(words);
+            }
+        });
+    </script>
+</body>
+</html>

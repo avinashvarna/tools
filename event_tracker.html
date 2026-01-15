@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #334155;
+            color: white;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #475569;
+            color: white;
+            border: 2px solid #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #64748b;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: #475569;
+            color: white;
+            border: 2px solid #64748b;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .event-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: #334155;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .event-item:hover {
+            background: #475569;
+            transform: translateX(4px);
+        }
+
+        .event-color {
+            width: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .event-details {
+            flex: 1;
+        }
+
+        .event-details h3 {
+            font-size: 18px;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .event-meta {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .delete-btn {
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #991b1b;
+            color: #fee2e2;
+        }
+
+        .calendar-view {
+            width: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .calendar-header button:hover {
+            background: #2563eb;
+        }
+
+        .calendar-header h2 {
+            font-size: 24px;
+            color: #f1f5f9;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #3b82f6;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            min-height: 100px;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            padding: 8px;
+            background: #334155;
+            transition: all 0.2s;
+        }
+
+        .calendar-day:hover:not(.empty) {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .calendar-day.empty {
+            background: #1e293b;
+            border-color: transparent;
+        }
+
+        .day-number {
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .day-events {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .calendar-event {
+            padding: 4px 6px;
+            border-radius: 4px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+            font-size: 18px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: #f1f5f9;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #94a3b8;
+            font-size: 24px;
+        }
+
+        .close-btn:hover {
+            color: #f1f5f9;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #475569;
+            background: #0f172a;
+            color: #f1f5f9;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 60px;
+            height: 45px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .color-input-group input[type="text"] {
+            flex: 1;
+        }
+
+        .event-types-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #475569;
+        }
+
+        .event-types-section h3 {
+            margin-bottom: 15px;
+            color: #f1f5f9;
+        }
+
+        .event-types-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .type-badge button {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .type-badge button:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .filter-menu {
+            position: relative;
+        }
+
+        .filter-btn {
+            position: relative;
+        }
+
+        .filter-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 250px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .filter-dropdown.show {
+            display: block;
+        }
+
+        .filter-dropdown h3 {
+            color: #f1f5f9;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .filter-option:hover {
+            background: #334155;
+        }
+
+        .filter-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #475569;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .filter-checkbox.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .filter-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .filter-type-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            color: #f1f5f9;
+            font-size: 14px;
+        }
+
+        .filter-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .filter-clear-btn {
+            width: 100%;
+            padding: 8px;
+            background: #475569;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .filter-clear-btn:hover:not(:disabled) {
+            background: #64748b;
+        }
+
+        .filter-clear-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+                margin-bottom: 15px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+            }
+
+            .view-toggle {
+                width: 100%;
+            }
+
+            .view-btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .calendar-grid {
+                gap: 4px;
+            }
+
+            .calendar-day {
+                min-height: 70px;
+                padding: 4px;
+            }
+
+            .calendar-event {
+                font-size: 9px;
+                padding: 2px 4px;
+            }
+
+            .day-number {
+                font-size: 11px;
+            }
+
+            .weekday {
+                font-size: 12px;
+                padding: 6px 2px;
+            }
+
+            .modal {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .event-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .event-color {
+                width: 100%;
+                height: 4px;
+            }
+
+            .filter-dropdown {
+                right: auto;
+                left: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calendar-header h2 {
+                font-size: 18px;
+            }
+
+            .calendar-header button {
+                padding: 8px 12px;
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Event Tracker</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="addEventBtn">➕ Add Event</button>
+                <button class="btn btn-secondary" id="manageTypesBtn">✏️ Manage Types</button>
+                <div class="filter-menu">
+                    <button class="btn btn-secondary filter-btn" id="filterBtn">
+                        🔍 Filter
+                        <span class="filter-badge hidden" id="filterBadge">0</span>
+                    </button>
+                    <div class="filter-dropdown" id="filterDropdown">
+                        <h3>Filter by Type</h3>
+                        <div class="filter-options" id="filterOptions"></div>
+                        <button class="filter-clear-btn" id="clearFiltersBtn">Clear All Filters</button>
+                    </div>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-btn active" id="listViewBtn">📋 List</button>
+                    <button class="view-btn" id="calendarViewBtn">📅 Calendar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="listView" class="list-view"></div>
+            <div id="calendarView" class="calendar-view hidden"></div>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div class="modal-overlay" id="addEventModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add New Event</h2>
+                <button class="close-btn" id="closeAddEvent">×</button>
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="eventDate">
+            </div>
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="eventType"></select>
+            </div>
+            <button class="btn btn-primary" id="saveEventBtn" style="width: 100%;">➕ Add Event</button>
+        </div>
+    </div>
+
+    <!-- Manage Types Modal -->
+    <div class="modal-overlay" id="manageTypesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Manage Event Types</h2>
+                <button class="close-btn" id="closeManageTypes">×</button>
+            </div>
+            <div class="event-types-section">
+                <h3>Current Types</h3>
+                <div class="event-types-list" id="currentTypesList"></div>
+            </div>
+            <div class="form-group" style="margin-top: 20px;">
+                <label>New Type Name</label>
+                <input type="text" id="newTypeName" placeholder="e.g., Conference, Holiday">
+            </div>
+            <div class="form-group">
+                <label>Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="newTypeColor" value="#3b82f6">
+                    <input type="text" id="newTypeColorText" value="#3b82f6" placeholder="#3b82f6">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="addTypeBtn" style="width: 100%;">➕ Add Event Type</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let events = [];
+        let eventTypes = [
+            { id: '1', name: 'Meeting', color: '#3b82f6' },
+            { id: '2', name: 'Birthday', color: '#ec4899' },
+            { id: '3', name: 'Deadline', color: '#ef4444' },
+            { id: '4', name: 'Appointment', color: '#8b5cf6' }
+        ];
+        let selectedTypeFilters = [];
+        let currentView = 'list';
+        let currentMonth = new Date();
+
+        // Load from localStorage
+        function loadData() {
+            const savedEvents = localStorage.getItem('events');
+            const savedTypes = localStorage.getItem('eventTypes');
+            if (savedEvents) events = JSON.parse(savedEvents);
+            if (savedTypes) eventTypes = JSON.parse(savedTypes);
+        }
+
+        function saveData() {
+            localStorage.setItem('events', JSON.stringify(events));
+            localStorage.setItem('eventTypes', JSON.stringify(eventTypes));
+        }
+
+        // Helper functions
+        function getEventType(typeId) {
+            return eventTypes.find(t => t.id === typeId) || eventTypes[0];
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getFilteredEvents() {
+            if (selectedTypeFilters.length === 0) return events;
+            return events.filter(e => selectedTypeFilters.includes(e.typeId));
+        }
+
+        // Render functions
+        function renderListView() {
+            const listView = document.getElementById('listView');
+            const filteredEvents = getFilteredEvents();
+            const sortedEvents = [...filteredEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (sortedEvents.length === 0) {
+                listView.innerHTML = `<div class="empty-state">${selectedTypeFilters.length > 0 ? 'No events found for selected types.' : 'No events yet. Add your first event!'}</div>`;
+                return;
+            }
+
+            listView.innerHTML = sortedEvents.map(event => {
+                const type = getEventType(event.typeId);
+                return `
+                    <div class="event-item">
+                        <div class="event-color" style="background-color: ${type.color};"></div>
+                        <div class="event-details">
+                            <h3>${type.name}</h3>
+                            <div class="event-meta">${formatDate(event.date)}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteEvent('${event.id}')">🗑️</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCalendarView() {
+            const calendarView = document.getElementById('calendarView');
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            let calendarHTML = `
+                <div class="calendar-header">
+                    <button onclick="previousMonth()">←</button>
+                    <h2>${monthName}</h2>
+                    <button onclick="nextMonth()">→</button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="weekday">Sun</div>
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                    <div class="weekday">Sat</div>
+            `;
+
+            // Empty cells
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                calendarHTML += '<div class="calendar-day empty"></div>';
+            }
+
+            // Days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const filteredEvents = getFilteredEvents();
+                const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+
+                calendarHTML += `
+                    <div class="calendar-day">
+                        <div class="day-number">${day}</div>
+                        <div class="day-events">
+                            ${dayEvents.map(event => {
+                                const type = getEventType(event.typeId);
+                                return `<div class="calendar-event" style="background-color: ${type.color};" title="${type.name} - ${formatDate(event.date)}">${type.name}</div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            calendarHTML += '</div>';
+            calendarView.innerHTML = calendarHTML;
+        }
+
+        function renderEventTypeSelect() {
+            const select = document.getElementById('eventType');
+            select.innerHTML = eventTypes.map(type => 
+                `<option value="${type.id}">${type.name}</option>`
+            ).join('');
+        }
+
+        function renderCurrentTypes() {
+            const list = document.getElementById('currentTypesList');
+            list.innerHTML = eventTypes.map(type => `
+                <div class="type-badge" style="background-color: ${type.color};">
+                    ${type.name}
+                    ${eventTypes.length > 1 ? `<button onclick="deleteEventType('${type.id}')">×</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderFilterOptions() {
+            const filterOptions = document.getElementById('filterOptions');
+            filterOptions.innerHTML = eventTypes.map(type => `
+                <div class="filter-option" onclick="toggleTypeFilter('${type.id}')">
+                    <div class="filter-checkbox ${selectedTypeFilters.includes(type.id) ? 'checked' : ''}"></div>
+                    <div class="filter-type-label">
+                        <div class="filter-color-dot" style="background-color: ${type.color};"></div>
+                        ${type.name}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateFilterBadge() {
+            const badge = document.getElementById('filterBadge');
+            if (selectedTypeFilters.length > 0) {
+                badge.textContent = selectedTypeFilters.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+            document.getElementById('clearFiltersBtn').disabled = selectedTypeFilters.length === 0;
+        }
+
+        function render() {
+            if (currentView === 'list') {
+                renderListView();
+            } else {
+                renderCalendarView();
+            }
+            renderFilterOptions();
+            updateFilterBadge();
+        }
+
+        // Event handlers
+        function addEvent() {
+            const date = document.getElementById('eventDate').value;
+            const typeId = document.getElementById('eventType').value;
+
+            if (!date) return;
+
+            events.push({
+                id: Date.now().toString(),
+                date,
+                typeId
+            });
+
+            saveData();
+            document.getElementById('addEventModal').classList.remove('show');
+            document.getElementById('eventDate').value = '';
+            render();
+        }
+
+        function deleteEvent(id) {
+            events = events.filter(e => e.id !== id);
+            saveData();
+            render();
+        }
+
+        function addEventType() {
+            const name = document.getElementById('newTypeName').value;
+            const color = document.getElementById('newTypeColor').value;
+
+            if (!name) return;
+
+            eventTypes.push({
+                id: Date.now().toString(),
+                name,
+                color
+            });
+
+            saveData();
+            document.getElementById('newTypeName').value = '';
+            document.getElementById('newTypeColor').value = '#3b82f6';
+            document.getElementById('newTypeColorText').value = '#3b82f6';
+            renderCurrentTypes();
+            renderEventTypeSelect();
+            renderFilterOptions();
+        }
+
+        function deleteEventType(id) {
+            if (eventTypes.length <= 1) return;
+
+            const firstRemainingType = eventTypes.find(t => t.id !== id);
+            events = events.map(e => e.typeId === id ? { ...e, typeId: firstRemainingType.id } : e);
+            eventTypes = eventTypes.filter(t => t.id !== id);
+            selectedTypeFilters = selectedTypeFilters.filter(f => f !== id);
+
+            saveData();
+            renderCurrentTypes();
+            renderEventTypeSelect();
+            render();
+        }
+
+        function toggleTypeFilter(typeId) {
+            if (selectedTypeFilters.includes(typeId)) {
+                selectedTypeFilters = selectedTypeFilters.filter(id => id !== typeId);
+            } else {
+                selectedTypeFilters.push(typeId);
+            }
+            render();
+        }
+
+        function clearAllFilters() {
+            selectedTypeFilters = [];
+            render();
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('listView').classList.toggle('hidden', view !== 'list');
+            document.getElementById('calendarView').classList.toggle('hidden', view !== 'calendar');
+            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+            document.getElementById('calendarViewBtn').classList.toggle('active', view === 'calendar');
+            render();
+        }
+
+        function previousMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendarView();
+        }
+
+        function nextMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendarView();
+        }
+
+        // Event listeners
+        document.getElementById('addEventBtn').addEventListener('click', () => {
+            document.getElementById('addEventModal').classList.add('show');
+        });
+
+        document.getElementById('closeAddEvent').addEventListener('click', () => {
+            document.getElementById('addEventModal').classList.remove('show');
+        });
+
+        document.getElementById('saveEventBtn').addEventListener('click', addEvent);
+
+        document.getElementById('manageTypesBtn').addEventListener('click', () => {
+            renderCurrentTypes();
+            document.getElementById('manageTypesModal').classList.add('show');
+        });
+
+        document.getElementById('closeManageTypes').addEventListener('click', () => {
+            document.getElementById('manageTypesModal').classList.remove('show');
+        });
+
+        document.getElementById('addTypeBtn').addEventListener('click', addEventType);
+
+        document.getElementById('newTypeColor').addEventListener('input', (e) => {
+            document.getElementById('newTypeColorText').value = e.target.value;
+        });
+
+        document.getElementById('newTypeColorText').addEventListener('input', (e) => {
+            document.getElementById('newTypeColor').value = e.target.value;
+        });
+
+        document.getElementById('listViewBtn').addEventListener('click', () => switchView('list'));
+        document.getElementById('calendarViewBtn').addEventListener('click', () => switchView('calendar'));
+
+        document.getElementById('filterBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('filterDropdown').classList.toggle('show');
+        });
+
+        document.getElementById('clearFiltersBtn').addEventListener('click', clearAllFilters);
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('show');
+                }
+            });
+        });
+
+        // Close filter dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const filterMenu = document.querySelector('.filter-menu');
+            const filterDropdown = document.getElementById('filterDropdown');
+            if (!filterMenu.contains(e.target)) {
+                filterDropdown.classList.remove('show');
+            }
+        });
+
+        // Initialize
+        loadData();
+        renderEventTypeSelect();
+        renderFilterOptions();
+        updateFilterBadge();
+        render();
+    </script>
+</body>
+</html>
