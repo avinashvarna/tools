@@ -129,6 +129,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            color: #e0e0e0;
         }
         
         .count {
@@ -206,6 +207,11 @@
             <input type="text" id="characters" placeholder="e.g., abc">
         </div>
         
+        <div class="input-group">
+            <label for="requiredLetter">Required Letter (optional):</label>
+            <input type="text" id="requiredLetter" maxlength="1" placeholder="e.g., a">
+        </div>
+        
         <div class="slider-container">
             <label for="length">Suffix Length: <span class="slider-value" id="lengthValue">2</span></label>
             <input type="range" id="length" min="2" max="5" value="2">
@@ -241,12 +247,14 @@
             lengthValue.textContent = this.value;
         });
         
-        function generateCombinations(chars, length) {
+        function generateCombinations(chars, length, requiredLetter) {
             const results = [];
             
             function backtrack(current) {
                 if (current.length === length) {
-                    results.push(current);
+                    if (!requiredLetter || current.includes(requiredLetter)) {
+                        results.push(current);
+                    }
                     return;
                 }
                 
@@ -263,6 +271,7 @@
             const prefix = document.getElementById('prefix').value;
             const characters = document.getElementById('characters').value.replace(/\s/g, '').toLowerCase();
             const length = parseInt(document.getElementById('length').value);
+            let requiredLetter = document.getElementById('requiredLetter').value.toLowerCase();
             
             if (!characters) {
                 document.getElementById('results').style.display = 'none';
@@ -270,7 +279,11 @@
                 return;
             }
             
-            const combinations = generateCombinations(characters, length);
+            if(requiredLetter && prefix.includes(requiredLetter)) {
+                requiredLetter = '';
+            }
+            
+            const combinations = generateCombinations(characters, length, requiredLetter);
             const words = combinations.map(combo => prefix + combo);
             
             displayResults(words);
@@ -316,11 +329,12 @@
         
         window.addEventListener('resize', function() {
             const prefix = document.getElementById('prefix').value;
-            const characters = document.getElementById('characters').value.replace(/\s/g, '');
+            const characters = document.getElementById('characters').value.replace(/\s/g, '').toLowerCase();
             const length = parseInt(document.getElementById('length').value);
+            const requiredLetter = document.getElementById('requiredLetter').value.toLowerCase();
             
             if (characters && document.getElementById('results').style.display !== 'none') {
-                const combinations = generateCombinations(characters, length);
+                const combinations = generateCombinations(characters, length, requiredLetter);
                 const words = combinations.map(combo => prefix + combo);
                 displayResults(words);
             }
